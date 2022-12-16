@@ -19,7 +19,7 @@ tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 
 
 from datasets import load_dataset, DatasetDict
-raw_dataset = load_dataset("text", data_files={"train": ["./data/GWtext/Backpop.raw"]})['train'].train_test_split(test_size=0.1, train_size=0.9, shuffle=True, seed=42)
+raw_dataset = load_dataset("text", data_files={"train": ["./data/GWtext/GWAbstract.raw"]})['train'].train_test_split(test_size=0.1, train_size=0.9, shuffle=True, seed=42)
 valid_test_dataset = raw_dataset['test'].train_test_split(test_size=0.5, train_size=0.5, shuffle=True, seed=42)
 
 ds_train = DatasetDict({
@@ -50,15 +50,7 @@ tokenized_datasets = ds_train.map(
 
 from transformers import AutoTokenizer, GPT2LMHeadModel, AutoConfig, AutoModelForCausalLM
 
-# config = AutoConfig.from_pretrained(
-#     "gpt2",
-#     vocab_size=len(tokenizer),
-#     n_ctx=context_length,
-#     bos_token_id=tokenizer.bos_token_id,
-#     eos_token_id=tokenizer.eos_token_id,
-# )
 
-# model = GPT2LMHeadModel(config)
 model = AutoModelForCausalLM.from_pretrained("gpt2", pad_token_id=tokenizer.eos_token_id)
 model_size = sum(t.numel() for t in model.parameters())
 print(f"GPT-2 size: {model_size/1000**2:.1f}M parameters")
@@ -142,7 +134,7 @@ optimizer = AdamW(get_grouped_params(model), lr=5e-4)
 
 from accelerate import Accelerator
 
-accelerator = Accelerator(fp16=True)
+accelerator = Accelerator(mixed_precision='fp16')
 
 model, optimizer, train_dataloader, eval_dataloader = accelerator.prepare(
     model, optimizer, train_dataloader, eval_dataloader
@@ -176,7 +168,7 @@ for epoch in range(num_train_epochs):
     ):
         logits = model(batch["input_ids"]).logits
         loss = keytoken_weighted_loss(batch["input_ids"], logits, keytoken_ids)
-        if step % 10 == 0:
+        if step % 100 == 0:
             accelerator.print(
                 {
                     "steps": completed_steps,
