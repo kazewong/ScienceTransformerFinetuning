@@ -1,0 +1,5 @@
+data/wikitext-103-raw-v1.zip
+data/GWtext/Backpop.raw
+data/wikitext-103-raw/wiki.test.raw
+data/wikitext-103-raw/wiki.train.raw
+data/wikitext-103-raw/wiki.valid.raw
