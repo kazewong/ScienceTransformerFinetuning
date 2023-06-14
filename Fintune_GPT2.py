@@ -19,7 +19,7 @@ tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 
 
 from datasets import load_dataset, DatasetDict
-raw_dataset = load_dataset("text", data_files={"train": ["./data/GWtext/GWAbstract.raw"]})['train'].train_test_split(test_size=0.1, train_size=0.9, shuffle=True, seed=42)
+raw_dataset = load_dataset("text", data_files={"train": ["./data/GWtext/Backpop.raw"]})['train'].train_test_split(test_size=0.1, train_size=0.9, shuffle=True, seed=42)
 valid_test_dataset = raw_dataset['test'].train_test_split(test_size=0.5, train_size=0.5, shuffle=True, seed=42)
 
 ds_train = DatasetDict({
@@ -198,7 +198,7 @@ model = model.eval()
 untuned_generator = pipeline("text-generation", model=AutoModelForCausalLM.from_pretrained("gpt2", pad_token_id=tokenizer.eos_token_id), tokenizer=tokenizer, max_new_tokens= context_length)
 generator = pipeline("text-generation", model=model, tokenizer=tokenizer,device=0, max_new_tokens= context_length)
 
-prompt = "We present"
+prompt = "The population of black holes provides"
 generate_result = generator([prompt for i in range(3)])
 untuned_generate_result = untuned_generator([prompt for i in range(3)])
 
