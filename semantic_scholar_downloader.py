@@ -21,7 +21,7 @@ webdriver_service = Service('path/to/chromedriver')  # Replace with the actual p
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
 # URL of the paper
-paper_url = 'https://www.semanticscholar.org/paper/Fast-gravitational-wave-parameter-estimation-Wong-Isi/4244ecfde10736c96e2e49589c80455caa35d40b'
+paper_url = 'https://www.semanticscholar.org/paper/Constraining-gravitational-wave-amplitude-with-Ng-Isi/30d50f507f9f8a4ee22546daecf8d179387dac01'
 
 driver.get(paper_url)
 
