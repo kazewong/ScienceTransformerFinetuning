@@ -8,6 +8,13 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException
 import requests
+import json
+import os
+import urllib.request
+
+def download_file(url, save_as):
+    urllib.request.urlretrieve(url, save_as)
+
 
 def get_paper(paper_id, get_references=False):
     url = f"https://api.semanticscholar.org/v1/paper/{paper_id}"
@@ -30,23 +37,6 @@ def get_paper(paper_id, get_references=False):
         print(f"Error: {response.status_code} - {response.text}")
         return []
 
-def search_papers(keyword, offset=0, limit=10):
-    url = "https://api.semanticscholar.org/graph/v1/paper/search"
-    params = {
-        "query": keyword,
-        "offset": offset,  # Specify the offset of the first paper to retrieve
-        "limit": limit  # Specify the number of papers to retrieve
-    }
-    response = requests.get(url, params=params)
-    
-    if response.status_code == 200:
-        papers_data = response.json()
-        papers = papers_data.get('data', [])
-        return papers
-    else:
-        print(f"Error: {response.status_code} - {response.text}")
-        return []
-
 # Setup Selenium
 chrome_options = Options()
 chrome_options.add_argument("--headless")  # Run Chrome in headless mode
@@ -57,10 +47,11 @@ driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), opti
 
 # URL of the paper
 
+directory = '/mnt/home/wwong/ceph/MLProject/Dataset/PaperScrapping/GW/'
+tag = '0'
 paper_id = '30d50f507f9f8a4ee22546daecf8d179387dac01'
 
-def download_paper(paper_id):
-
+def download_paper(directory, tag, paper_id):
     metadata = get_paper(paper_id)
     driver.get('https://www.semanticscholar.org/paper/'+paper_id)
     try:
@@ -83,8 +74,23 @@ def download_paper(paper_id):
             driver.find_element(by=By.CLASS_NAME,value="next-figure").click()
             time.sleep(0.1)
         metadata['num_figures'] = len(elem_list)
-        return {"metadata":metadata,"image_caption":image_caption}
+        output = {"metadata":metadata,"image_caption":image_caption}
+        if not os.path.exists(directory+tag):
+            os.makedirs(directory+tag)
+        if not os.path.exists(directory+tag+"/"+metadata['arxivId']):
+            os.makedirs(directory+tag+"/"+metadata['arxivId'])
+        with open(directory+tag+"/"+metadata['arxivId']+"/metadata.json",'w') as file:
+            json.dump(output, file, indent=4)
+        
+        for i in image_caption:
+            download_file(i['image_link'],directory+tag+"/"+metadata['arxivId']+"/"+i['image_link'].split("/")[-1])
+
+        return True
     except TimeoutException:
         print("Loading took too much time! Could be a paper without figures")
+        return False
+    except Exception:
+        return False
 
-image_caption = download_paper(paper_id)
+
+download_paper(directory, tag, paper_id)
